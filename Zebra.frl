@@ -1,0 +1,142 @@
+/*Bao Do, Daniel Lindberg, Alex Davis
+*Zebra Puzzle
+*
+*/
+
+% Item list (color people snack pet drink)
+% Add contents to the knowledge base
+((zebraPuzzle H)
+	(family (Red Englishman _ _ _) H)
+	(family (_ Spaniard _ Dog _) H)
+	(eq H ((_ Norwegian _ _ _) _ _ _ _))
+	(left (Ivory _ _ _ _) (Green _ _ _ _) H)
+	(next (_ _ Hersheys _ _) (_ _ _ Fox _) H)
+	(family (Yellow _ KitKats _ _) H)
+	(next (_ Norwegian _ _ _) (Blue _ _ _ _) H)
+	(family (_ _ Smarties Snails _) H)
+	(family (_ _ Snickers _ OrangeJuice) H)
+	(family (_ Ukranian _ _ Tea) H)
+	(family (_ Japanese MilkyWays _ _) H)
+	(next (_ _ KitKats _ _) (_ _ _ Horse _) H)
+	(family (Green _ _ _ Coffee) H)
+	(eq H (_ _ (_ _ _ _ Milk) _ _)))
+
+% Predicate to define house's location
+((left X Y (X Y _ _ _)))
+((left X Y (_ X Y _ _)))
+((left X Y (_ _ X Y _)))
+((left X Y (_ _ _ X Y)))
+
+((next X Y LIST)(left X Y LIST))
+((next X Y LIST)(left Y X LIST))
+
+% a family includes house's color, people, snack, pet, and drink
+((family X (X _ _ _ _) ))
+((family X (_ X _ _ _) ))
+((family X (_ _ X _ _) ))
+((family X (_ _ _ X _) ))
+((family X (_ _ _ _ X) ))
+
+
+% solutions of the zebra puzzle 
+((solutions H)(zebraPuzzle H))
+
+% What color is the house in which the Norwegian lives?
+% Answer: The color of Norwegian's house is Yellow
+
+((norwegianHouseColor)
+	(solutions H)
+	(family (C Norwegian _ _ _) H)
+	(p "The color of Norwegian's house is ")
+	(pp C)
+	(fail))
+	
+% What color is the house in which the zebra lives?
+% Answer: The zebra lives in a Green house
+
+((zebraHouseColor)
+	(solutions H)
+	(family (C _ _ Zebra _) H)
+	(p "The zebra lives in a " C " house")
+	(fail))
+
+% In which house is wine drank?
+% Norwegian probably drinks wine in the Yellow house
+
+((wineHouse)
+	(solutions H)
+	(family (C P _ _ Wine) H)
+	(p P "probably drinks wine in the" C "house" )
+	(fail))
+	
+% In which house are Smarties eaten and orange juice drank?
+% Answer: No house has smarties eaten and orange 
+
+((smartiesAndJuiceHouse)
+	(solutions H)
+	(family (C P Smarties _ OrangeJuice) H)
+	(p "Smarties and orange juice belong to " C " house of " P)
+	(fail))
+	
+((smartiesAndJuiceHouse)
+	(solutions H)
+	(negg family (C P Smarties _ OrangeJuice) H)
+	(p "No house has smarties eaten and orange juice drank")
+	(fail))
+	
+% What color is the fifth house (last house on the right)?
+% Answer: The color of the fifth house is Green
+
+((fifthHouseColor)
+	(solutions H)
+	(solutions (_ _ _ _ (C _ _ _ _)))
+	(p "The color of the fifth house is ")
+	(pp C)
+	(fail))
+	
+% Who drinks what?
+/* Norwegian drinks _45 ==> This means norwegian's drink is vary
+*  Ukranian drinks Tea
+*  English drinks Milk
+*  Spaniard drinks OrangeJuice
+*  Japanese drinks Coffee
+*/
+
+((everyoneDrinks)
+	(solutions H)
+	(printDrinks H))
+
+((printDrinks ((_ P _ _ D)))
+	(p P "drinks" D)(pp))
+	
+((printDrinks (H|T))
+	(printDrinks (H))
+	(printDrinks T))
+	
+	
+/*
+* To run this program
+* >> load Zebra.frl
+* >> ?((norwegianHouseColor))
+* >> ?((zebraHouseColor))
+* >> ?((((wineHouse)))
+* >> ?((smartiesAndJuiceHouse))
+* >> ?((fifthHouseColor))
+* >> ?((everyoneDrinks))
+*/
+
+/*******Sample output********/
+/* >> load Zebra.frl
+* The color of Norwegian's house is Yellow
+* The zebra lives in a Green house
+* Norwegian probably drinks wine in the Yellow house
+* No house has smarties eaten and orange juice drank
+* The color of the fifth house is Green
+* Norwegian drinks _45 ==> This means norwegian's drink is vary
+* Ukranian drinks Tea
+* English drinks Milk
+* Spaniard drinks OrangeJuice
+* Japanese drinks Coffee
+*/
+	
+	

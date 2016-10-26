@@ -1,0 +1,146 @@
+/* Bao Do; Alex Davis, Daniel Lindberg
+Homework 2
+Breadth First and Depth First Hybrid
+
+In order to run this:
+load the program and make sure the gengraph.frl is included in the same directory
+>> load hybrid
+generate the map
+>> ?((mygraph))
+>> ?((solve_hbd T S G SOL))
+>> <<results>>
+*/
+
+?((reload gengraph))
+/* The  stopping rule for this condition is obtained when 
+the current path to be expanded starts with the goal node, that is:
+*/
+
+% generate a random graph with 10 nodes from 1 to 10 and connect the paths
+((mygraph)
+	(kill newedges)(kill alledges)(kill connect)(kill outdeg)(kill indeg)(kill deg)
+    (nodes N)
+	(connect_aux3 4 L1)
+	(connect_aux3 4 L2)
+	(connect_aux3 4 L3)
+	(connect_aux3 4 L4)
+	(alledges_aux)
+    (alledges E)
+    (make connect E)
+    (outdeg_aux2 N)
+    (indeg_aux2 N)
+    (deg_aux2 N))
+
+/* The  stopping rule for this condition is obtained when 
+the current path to be expanded starts with the goal node, that is:
+*/
+((hbd TH ((X |T) |  PATHS) (X|T))(goal X))
+
+% Depth First Search
+((hbd TH (H| TPaths) SOL)(less TH 0) (!) 	
+	(expand H NPaths)
+	(append NPaths TPaths NEWPATHS)
+	(hbd TH NEWPATHS SOL))
+	
+% Breadth First Search	
+((hbd TH (PAth|TPaths) SOL)(less 5 TH) (!)
+	(expand PAth NPaths)
+	(append TPaths NPaths NEWPATHS)
+	(hbd TH NEWPATHS SOL))
+
+%here 1 <= T <= 5 and outDeg < T, process as depth_first
+((hbd TH ((H| PAth) |TPaths) SOL)
+	(outdeg H D)(less D TH)
+	(expand (H | PAth) NPaths)
+	(append NPaths TPaths NEWPATHS)
+	(hbd TH NEWPATHS SOL))
+
+%here 1 <= T <= 5 and outDeg < T, process as breadth_first
+((hbd TH (PAth|TPaths) SOL)
+	(expand PAth NPaths)
+	(append TPaths NPaths NEWPATHS)
+	(hbd TH NEWPATHS SOL))
+
+((solve_hbd T S  G SOL)
+                 (kill goal)
+                 (addcl ((goal G)))
+                 (hbd T ((S)) S1)
+                 (reverse S1 SOL)
+                 (pretty_print_solution SOL)
+                 (delcl  ((goal G))  ))	
+		
+
+((expand (HPath|TPath) NPaths)
+            (findall  (NEXT HPath|TPath)
+                       ((path HPath NEXT)(negg member NEXT (HPath|TPath)))
+                         NPaths
+               )
+)
+
+/*(new_paths NL L PP PB) succeeds if BL is a list of 
+branches obtained from NL when the previous path is PP of length L
+
+*/
+
+((new_paths () L PP () ))
+((new_paths (NN|ON) L PP (((NN HV L1) | PP)|OP))
+    (sum L 1 L1)
+    (heuristic NN L1 HV)
+    (new_paths ON L PP OP))
+	
+/* (paths N NL P) succeeds if NL is a list of possible nodes 
+that are connected to the node N and are not in the list P
+*/
+
+((paths N NL P)(isall NL X (path N X)(negg member X P)))
+
+/* auxiliary predicates */
+
+((member H (H|_)))
+((member X (H|T))(member X T))
+
+((print ())(p success))
+((print (H | T))
+     (p H "--->")
+     (pp)(print T)) 
+
+((reverse () ()))
+((reverse (H|T) R)(reverse T RT)(append RT (H) R))
+
+((append () L L))
+((append (H|T) L2 (H|L))(append T L2 L))		
+((pretty_print_solution () ))
+((pretty_print_solution (H|T))(pp)(p H "->")(pretty_print_solution T))
+
+/*
+Discussion:
+ The hybrid search is better sometimes better than depth first and breadth first search. 
+ It doesn’t guarantee that it will find the shortest path each time. 
+ Since the hybrid search is run based on the number of out degree or edges compare to 
+ the threshold, it will decide whether breadth first or depth first is a better search 
+ without knowing the end result. If the threshold is small, then hybrid is more likely to 
+ produce the breadthF result and if threshold is big, then depthF is most likely to be depth first the result.
+For example, 
+((connect 4 9))
+((connect 6 8))
+((connect 2 8))
+((connect 1 6))
+((connect 3 4 ))
+((connect 7 9 ))
+((connect 2 9 ))
+((connect 8 9))
+((connect 2 3))
+((connect 9 10))
+((connect 2 4))
+((connect 1 4))
+((connect 2 7))
+((connect 5 8))
+((connect 1 5))
+
+solution for depth_first is 6 -> 8 -> 9 -> 4
+meanwhile the solution for breadth_first is 6 -> 1 -> 4
+
+if the threshold(T) is 5, then the hybrid will have the same result as depth_first search
+and if Threshold is 1, then the hybrid will have the same result as Breadth_first 
+This proves that hybrid is not always the best when the threshold is bias.
+*/
